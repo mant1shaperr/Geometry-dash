@@ -60,6 +60,84 @@ class GeometryDash {
         }
     }
     
+    setupAudio() {
+    this.audioContext = null;
+    this.sounds = {
+        jump: { freq: 300, type: 'sine', duration: 0.1 },
+        score: { freq: 400, type: 'square', duration: 0.05 },
+        crash: { freq: 150, type: 'sawtooth', duration: 0.1 },
+        powerup: { freq: 600, type: 'triangle', duration: 0.2 }
+    };
+
+    this.initAudioOnFirstTouch();
+}
+
+initAudioOnFirstTouch() {
+    const initAudio = () => {
+        if (!this.audioContext) {
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('✓ Audio context initialized');
+            } catch (e) {
+                console.log('✗ Audio not supported:', e);
+            }
+        }
+    };
+
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('click', initAudio, { once: true });
+}
+
+// ========================
+// МОБИЛЬНЫЕ НАСТРОЙКИ
+// ========================
+
+setupMobile() {
+    document.addEventListener('touchmove', (e) => {
+        if (e.scale !== 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('selectstart', (e) => {
+        e.preventDefault();
+    });
+    
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    }
+}
+
+// ========================
+// ВОСПРОИЗВЕДЕНИЕ ЗВУКОВ
+// ========================
+
+playSound(soundName) {
+    if (!this.audioContext) return;
+
+    const sound = this.sounds[soundName];
+    if (!sound) return;
+
+    try {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        oscillator.frequency.value = sound.freq;
+        oscillator.type = sound.type;
+
+        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + sound.duration);
+
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + sound.duration);
+    } catch (e) {
+        console.log("Audio error:", e);
+    }
+}
     setupCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
