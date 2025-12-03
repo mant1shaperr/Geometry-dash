@@ -17,7 +17,7 @@ class GeometryDash {
         this.setupAudio();
         this.setupCanvas();
         this.initGame();
-        
+
         this.highScore = localStorage.getItem('geometryDashHighScore') || 0;
         if (this.highScoreElement) {
             this.highScoreElement.textContent = `🏆 Рекорд: ${this.highScore}`;
@@ -30,7 +30,7 @@ class GeometryDash {
         
         console.log('✅ Game initialized for mobile');
     }
-    
+
     jump() {
         console.log('🎮 JUMP METHOD CALLED, gameState:', this.gameState);
         
@@ -47,9 +47,9 @@ class GeometryDash {
             this.player.scale = 0.8;
             
             // Эффекты прыжка
-            this.createParticleEffect(this.player.x + this.player.width/2,
-                                    this.player.y + this.player.height,
-                                    8, '#FFFFFF');
+            this.createParticleEffect(this.player.x + this.player.width/2, 
+                                     this.player.y + this.player.height, 
+                                     8, '#FFFFFF');
             this.playSound('jump');
             
             setTimeout(() => {
@@ -59,13 +59,30 @@ class GeometryDash {
             console.log('⚠️ Player already jumping');
         }
     }
+
+    setupMobile() {
+    document.addEventListener('touchmove', (e) => {
+        if (e.scale != 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    document.addEventListener('selectstart', (e) => {
+        e.preventDefault();
+    });
     
-    setupAudio() {
+    const viewport = document.querySelector('meta[name=viewport]');
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    }
+}
+
+setupAudio() {
     this.audioContext = null;
     this.sounds = {
         jump: { freq: 300, type: 'sine', duration: 0.1 },
         score: { freq: 400, type: 'square', duration: 0.05 },
-        crash: { freq: 150, type: 'sawtooth', duration: 0.1 },
+        crash: { freq: 150, type: 'sawtooth', duration: 0.3 },
         powerup: { freq: 600, type: 'triangle', duration: 0.2 }
     };
 
@@ -77,41 +94,19 @@ initAudioOnFirstTouch() {
         if (!this.audioContext) {
             try {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                console.log('✓ Audio context initialized');
+                console.log('# Audio context initialized');
             } catch (e) {
-                console.log('✗ Audio not supported:', e);
+                console.log('X Audio not supported:', e);
             }
         }
+        
+        document.removeEventListener('touchstart', initAudio);
+        document.removeEventListener('click', initAudio);
     };
 
     document.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener('click', initAudio, { once: true });
 }
-
-// ========================
-// МОБИЛЬНЫЕ НАСТРОЙКИ
-// ========================
-
-setupMobile() {
-    document.addEventListener('touchmove', (e) => {
-        if (e.scale !== 1) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-
-    document.addEventListener('selectstart', (e) => {
-        e.preventDefault();
-    });
-    
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
-    }
-}
-
-// ========================
-// ВОСПРОИЗВЕДЕНИЕ ЗВУКОВ
-// ========================
 
 playSound(soundName) {
     if (!this.audioContext) return;
@@ -138,7 +133,8 @@ playSound(soundName) {
         console.log("Audio error:", e);
     }
 }
-    setupCanvas() {
+
+setupCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         
@@ -183,8 +179,6 @@ playSound(soundName) {
             y: this.canvas.height - 120,
             height: 120
         };
-        
-        // Цветовые темы
         this.colorThemes = [
             { primary: '#FF6B6B', secondary: '#4ECDC4', bg: '#64B5F6' },
             { primary: '#FF9E6B', secondary: '#6BFFD3', bg: '#a18cd1' },
@@ -227,7 +221,6 @@ playSound(soundName) {
                 this.jump();
             }
         });
-        
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
@@ -237,7 +230,9 @@ playSound(soundName) {
     }
     
     setupCanvasControls() {
+
         const handleJump = (e) => {
+
             if (e.type === 'touchstart') {
                 e.preventDefault();
             }
@@ -294,6 +289,31 @@ playSound(soundName) {
         setTimeout(() => {
             document.body.removeChild(effect);
         }, 500);
+    }
+    
+    setupSwipeControls() {
+        let startX, startY;
+        
+        this.canvas.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            if (!startX || !startY) return;
+            
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            
+            const diffX = endX - startX;
+            const diffY = endY - startY;
+            
+            if (Math.abs(diffY) > Math.abs(diffX) && diffY < -30) {
+                this.jump();
+            }
+            
+            startX = startY = null;
+        }, { passive: true });
     }
     
     startGame() {
@@ -494,7 +514,7 @@ playSound(soundName) {
         });
     }
     
-    checkCollision(player, object) {
+   checkCollision(player, object) {
         return player.x < object.x + object.width &&
                player.x + player.width > object.x &&
                player.y < object.y + object.height &&
@@ -582,7 +602,7 @@ playSound(soundName) {
         // ИГРОК
         this.ctx.save();
         this.ctx.translate(
-            this.player.x + this.player.width/2,
+            this.player.x + this.player.width/2, 
             this.player.y + this.player.height/2
         );
         this.ctx.rotate(this.player.rotation * Math.PI / 180);
@@ -631,53 +651,103 @@ playSound(soundName) {
         
         this.ctx.restore();
     }
-    
+
     darkenColor(color, percent) {
-        const num = parseInt(color.slice(1), 16);
-        const amt = Math.round(2.55 * percent);
-        const R = (num >> 16) - amt;
-        const G = (num >> 8 & 0x00FF) - amt;
-        const B = (num & 0x0000FF) - amt;
-        
-        return '#' + (
-            0x1000000 +
-            (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-            (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-            (B < 255 ? B < 1 ? 0 : B : 255)
-        ).toString(16).slice(1);
+    const num = parseInt(color.replace("#", ""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) - amt;
+    const G = ((num >> 8) & 0x00FF) - amt;
+    const B = (num & 0x0000FF) - amt;
+    return "#" + (0x1000000 + (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+        (B < 255 ? (B < 1 ? 0 : B) : 255)).toString(16).slice(1);
+}
+
+updateScore() {
+    if (this.scoreElement) {
+        this.scoreElement.textContent = `★ Очки: ${this.score}`;
     }
-    
-    setupMobile() {
-        // Метод из методички
-    }
-    
-    setupAudio() {
-        // Метод из методички
-    }
-    
-    playSound(sound) {
-        // Метод из методички
-    }
-    
-    gameOver() {
-        // Метод из методички
-    }
-    
-    shareScore() {
-        // Метод из методички
-    }
-    
-    gameLoop() {
-        this.update();
-        this.draw();
-        
-        if (this.gameState === 'playing') {
-            requestAnimationFrame(() => this.gameLoop());
+    if (this.score > this.highScore) {
+        this.highScore = this.score;
+        if (this.highScoreElement) {
+            this.highScoreElement.textContent = `🏆 Рекорд: ${this.highScore}`;
         }
+        localStorage.setItem('geometryDashHighScore', this.highScore);
     }
 }
 
-// Инициализация
+gameOver() {
+    this.gameState = 'gameover';
+
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalScore = document.getElementById('finalScore');
+    const menu = document.getElementById('menu');
+    const gameContainer = document.getElementById('gameContainer');
+
+    if (gameOverScreen) gameOverScreen.classList.remove('hidden');
+    if (finalScore) finalScore.textContent = ` * Очки: ${this.score}`;
+    if (menu) menu.classList.remove('hidden');
+    if (gameContainer) {
+        gameContainer.classList.remove('playing');
+    }
+
+    this.screenShake = 2;
+    this.createParticleEffect(this.player.x + this.player.width/2, this.player.y + this.player.height/2, 30, '#FF0000');
+    this.playSound('crash');
+    this.sendScoreToBot();
+}
+
+restartGame() {
+    const gameContainer = document.getElementById('gameContainer');
+    if (gameContainer) {
+        gameContainer.classList.add('playing');
+    }
+    const menu = document.getElementById('menu');
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+
+    this.currentTheme = (this.currentTheme + 1) % this.colorThemes.length;
+    this.initGame();
+    this.startGame();
+}
+
+shareScore() {
+    const shareText = `Я набрал ${this.score} очков в Geometry Dash Ultimate!`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'Geometry Dash Ultimate',
+            text: shareText
+        });
+    } else {
+        alert(shareText);
+    }
+}
+
+sendScoreToBot() {
+    try {
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.sendData(JSON.stringify({
+                action: 'game_score',
+                score: this.score,
+                highScore: this.highScore
+            }));
+        }
+    } catch (e) {
+        console.log('Cannot send data to bot:', e);
+    }
+}
+
+gameLoop() {
+    this.update();
+    this.draw();
+
+    if (this.gameState == 'playing') {
+        requestAnimationFrame(() => this.gameLoop());
+    }
+}
+}
+
 function initializeGame() {
     console.log('🚀 INITIALIZING GAME...');
     
