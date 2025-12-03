@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash - Technical Edition</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ui">
+            <div id="score">★ Очки: 0</div>
+            <div id="highScore">🏆 Рекорд: 0</div>
+        </div>
+        
+        <div id="menu">
+            <div id="startScreen">
+                <h1>🎮 Geometry Dash</h1>
+                <h2>Technical Edition</h2>
+                <button id="startBtn">СТАРТ</button>
+                <div id="controls">
+                    <p>🔼 ПРОБЕЛ / КЛИК / КАСАНИЕ - прыжок</p>
+                    <p>🎯 Избегайте препятствий, собирайте монеты!</p>
+                </div>
+                <div id="authSection">
+                    <p>🔐 Войдите через Telegram</p>
+                </div>
+            </div>
+            <div id="gameOverScreen" class="hidden">
+                <h1>💀 ИГРА ОКОНЧЕНА</h1>
+                <h2 id="finalScore">Очки: 0</h2>
+                <button id="restartBtn">ИГРАТЬ СНОВА</button>
+                <button id="shareBtn">📤 Поделиться</button>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>

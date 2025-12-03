@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация - Geometry Dash</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div style="text-align: center; padding: 50px; font-family: Arial;">
+        <h1>🔐 Авторизация</h1>
+        <p>Войдите через Telegram, чтобы сохранять рекорды</p>
+        
+        <div id="telegram-login"></div>
+        
+        <script>
+            // Telegram Widget код будет вставлен сюда после настройки
+            function onTelegramAuth(user) {
+                alert('Привет, ' + user.first_name + '!');
+                localStorage.setItem('tg_user', JSON.stringify(user));
+                window.location.href = 'index.html';
+            }
+            
+            // Если уже авторизован, перенаправляем
+            if (localStorage.getItem('tg_user')) {
+                window.location.href = 'index.html';
+            }
+        </script>
+        
+        <p style="margin-top: 30px; color: gray;">
+            После авторизации вы вернетесь в игру
+        </p>
+    </div>
+</body>
+</html>
